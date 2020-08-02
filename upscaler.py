@@ -280,11 +280,11 @@ a = 0
 '''
 
 image_names = os.listdir(train_dir_scaled)
-train_generator = batch_generator(train_dir_scaled,train_dir,image_names)
+train_generator = batch_generator(train_dir_scaled,train_dir,image_names,4)
 
 # Conjunto validação
 image_names = os.listdir(validation_dir_scaled)
-validation_generator = batch_generator(validation_dir_scaled,validation_dir,image_names)
+validation_generator = batch_generator(validation_dir_scaled,validation_dir,image_names,4)
 
 # Conjunto teste
 #test_datagen = ImageDataGenerator(rescale=1./255)
@@ -295,14 +295,14 @@ validation_generator = batch_generator(validation_dir_scaled,validation_dir,imag
 #    class_mode=None,
 #    shuffle = False)
 image_names = os.listdir(test_dir_scaled)
-test_generator = batch_generator(test_dir_scaled,test_dir,image_names)
+test_generator = batch_generator(test_dir_scaled,test_dir,image_names,4)
 callback = tf.keras.callbacks.LearningRateScheduler(adapt_learning_rate)
 history = model.fit_generator(train_generator,
-    steps_per_epoch = 640//64,
+    steps_per_epoch = 640//4,
     epochs = 10,
     callbacks=[callback],
     validation_data=validation_generator,
-    validation_steps = 192//64)
+    validation_steps = 192//4)
 
 model.save('first.h5')
 
