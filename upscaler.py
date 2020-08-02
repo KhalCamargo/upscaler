@@ -13,7 +13,7 @@ import numpy as np
 extracted_dataset_dir = 'F:\Images Dataset\\0'
 selected_dataset_dir = 'F:\Images Dataset\SelectedSizes'
 original_dataset_dir = 'F:\Images Dataset\SelectedSizes'
-base_dir = 'B:\\GitHub\\upscaler\\BaseDir'
+base_dir = '.\\BaseDir'
 
 def crop_center(pil_img, crop_width, crop_height):
     img_width, img_height = pil_img.size
@@ -280,11 +280,11 @@ a = 0
 '''
 
 image_names = os.listdir(train_dir_scaled)
-train_generator = batch_generator(train_dir_scaled,train_dir,image_names,2)
+train_generator = batch_generator(train_dir_scaled,train_dir,image_names)
 
 # Conjunto validação
 image_names = os.listdir(validation_dir_scaled)
-validation_generator = batch_generator(validation_dir_scaled,validation_dir,image_names,2)
+validation_generator = batch_generator(validation_dir_scaled,validation_dir,image_names)
 
 # Conjunto teste
 #test_datagen = ImageDataGenerator(rescale=1./255)
@@ -295,14 +295,14 @@ validation_generator = batch_generator(validation_dir_scaled,validation_dir,imag
 #    class_mode=None,
 #    shuffle = False)
 image_names = os.listdir(test_dir_scaled)
-test_generator = batch_generator(test_dir_scaled,test_dir,image_names,2)
+test_generator = batch_generator(test_dir_scaled,test_dir,image_names)
 callback = tf.keras.callbacks.LearningRateScheduler(adapt_learning_rate)
 history = model.fit_generator(train_generator,
-    steps_per_epoch = 640//2,
+    steps_per_epoch = 640//64,
     epochs = 10,
     callbacks=[callback],
     validation_data=validation_generator,
-    validation_steps = 192//2)
+    validation_steps = 192//64)
 
 model.save('first.h5')
 
