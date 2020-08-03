@@ -155,7 +155,7 @@ def adapt_learning_rate(epoch,lr):
 inputLayer = layers.Input(shape=(600,600,3))
 
 #adicionando as camadas
-n_layers = 5
+n_layers = 20
 for i in range(n_layers):
     if i == 0:
         x = layers.Conv2D(64,(3,3),activation='relu',padding='same',kernel_regularizer=l2(0.0001),use_bias=False)(inputLayer)
@@ -279,12 +279,14 @@ a = 0
 #X_train, y_train = dataset_loader(train_dir_scaled,train_dir)
 '''
 
+num_batches = 2
+
 image_names = os.listdir(train_dir_scaled)
-train_generator = batch_generator(train_dir_scaled,train_dir,image_names,4)
+train_generator = batch_generator(train_dir_scaled,train_dir,image_names,num_batches)
 
 # Conjunto validação
 image_names = os.listdir(validation_dir_scaled)
-validation_generator = batch_generator(validation_dir_scaled,validation_dir,image_names,4)
+validation_generator = batch_generator(validation_dir_scaled,validation_dir,image_names,num_batches)
 
 # Conjunto teste
 #test_datagen = ImageDataGenerator(rescale=1./255)
@@ -295,15 +297,15 @@ validation_generator = batch_generator(validation_dir_scaled,validation_dir,imag
 #    class_mode=None,
 #    shuffle = False)
 image_names = os.listdir(test_dir_scaled)
-test_generator = batch_generator(test_dir_scaled,test_dir,image_names,4)
-callback = tf.keras.callbacks.LearningRateScheduler(adapt_learning_rate)
+test_generator = batch_generator(test_dir_scaled,test_dir,image_names,num_batches)
+callback = tf.keras.callbacks.LearningRateScheduler(adapt_learning_rate, verbose=1)
 history = model.fit_generator(train_generator,
-    steps_per_epoch = 640//4,
-    epochs = 10,
+    steps_per_epoch = 640//num_batches,
+    epochs = 80,
     callbacks=[callback],
     validation_data=validation_generator,
-    validation_steps = 192//4)
+    validation_steps = 192//num_batches)
 
-model.save('first.h5')
+model.save('20layers80epochs.h5')
 
 print("END")
