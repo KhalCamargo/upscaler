@@ -9,6 +9,30 @@ import os, shutil
 from keras import *
 import numpy as np
 
+from keras.callbacks import CSVLogger
+
+num_batches = 2
+num_epochs = 80
+num_layers = 20
+num_lr = 0.01
+
+print('batches: ' + str(num_batches) + ' epochs: ' + str(num_epochs) + ' layers: ' +  str(num_layers) + ' rate: ' + str(num_lr))
+
+filename = str(num_epochs) + 'ep_' + str(num_layers) + 'ls_' + str(num_batches) + 'bt_' + str(num_lr) + 'lr.h5'
+print("Filename will be: ", filename)
+
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    try:
+        # Currently, memory growth needs to be the same across GPUs
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+        logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+    except RuntimeError as e:
+        # Memory growth must be set before GPUs have been initialized
+        print(e)
+
 
 extracted_dataset_dir = 'F:\Images Dataset\\0'
 selected_dataset_dir = 'F:\Images Dataset\SelectedSizes'
@@ -144,7 +168,7 @@ if makeRandomScalesInput:
 
 
 #taxa de aprendizado
-lr =0.1
+lr = num_lr
 
 #Callback para reduzir a taxa de aprendizado
 def adapt_learning_rate(epoch,lr):
@@ -155,7 +179,7 @@ def adapt_learning_rate(epoch,lr):
 inputLayer = layers.Input(shape=(600,600,3))
 
 #adicionando as camadas
-n_layers = 20
+n_layers = num_layers
 for i in range(n_layers):
     if i == 0:
         x = layers.Conv2D(64,(3,3),activation='relu',padding='same',kernel_regularizer=l2(0.0001),use_bias=False)(inputLayer)
@@ -192,9 +216,13 @@ model = models.Model(inputs=inputLayer,outputs=layer_out)
 ##model.add(layer_out)
 '''
 
+# Loss functtion
+def ssim_loss(y_true, y_pred):
+  return tf.reduce_mean(tf.image.ssim(y_true, y_pred, 2.0))
+
 #Compilando o modelo
 opt = optimizers.SGD(learning_rate=lr,momentum=0.9,clipvalue=0.4)
-model.compile(loss=losses.MeanSquaredError())
+model.compile(optimizer=opt, loss=ssim_loss)
 
 model.summary()
 
@@ -279,7 +307,7 @@ a = 0
 #X_train, y_train = dataset_loader(train_dir_scaled,train_dir)
 '''
 
-num_batches = 2
+
 
 image_names = os.listdir(train_dir_scaled)
 train_generator = batch_generator(train_dir_scaled,train_dir,image_names,num_batches)
@@ -299,13 +327,16 @@ validation_generator = batch_generator(validation_dir_scaled,validation_dir,imag
 image_names = os.listdir(test_dir_scaled)
 test_generator = batch_generator(test_dir_scaled,test_dir,image_names,num_batches)
 callback = tf.keras.callbacks.LearningRateScheduler(adapt_learning_rate, verbose=1)
+
+csv_logger = CSVLogger('training.log', separator=',', append=False)
+
 history = model.fit_generator(train_generator,
     steps_per_epoch = 640//num_batches,
-    epochs = 80,
-    callbacks=[callback],
+    epochs = num_epochs,
+    callbacks=[callback, csv_logger],
     validation_data=validation_generator,
     validation_steps = 192//num_batches)
 
-model.save('20layers80epochs.h5')
+model.save(filename)
 
 print("END")
