@@ -14,7 +14,7 @@ from keras.callbacks import CSVLogger
 num_batches = 2
 num_epochs = 80
 num_layers = 20
-num_lr = 0.01
+num_lr = 0.1
 
 print('batches: ' + str(num_batches) + ' epochs: ' + str(num_epochs) + ' layers: ' +  str(num_layers) + ' rate: ' + str(num_lr))
 
@@ -216,9 +216,9 @@ model = models.Model(inputs=inputLayer,outputs=layer_out)
 ##model.add(layer_out)
 '''
 
-# Loss functtion
+# Loss function
 def ssim_loss(y_true, y_pred):
-  return tf.reduce_mean(tf.image.ssim(y_true, y_pred, 2.0))
+  return 1 - tf.reduce_mean(tf.image.ssim(y_true, y_pred, 1.0))
 
 #Compilando o modelo
 opt = optimizers.SGD(learning_rate=lr,momentum=0.9,clipvalue=0.4)
