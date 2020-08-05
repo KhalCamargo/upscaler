@@ -12,7 +12,7 @@ import numpy as np
 from keras.callbacks import CSVLogger
 
 num_batches = 2
-num_epochs = 80
+num_epochs = 10
 num_layers = 20
 num_lr = 0.1
 
@@ -38,8 +38,8 @@ extracted_dataset_dir = 'F:\Images Dataset\\0'
 selected_dataset_dir = 'F:\Images Dataset\SelectedSizes'
 selected_dataset_Y_dir = 'F:\Images Dataset\SelectedSizes_Y'
 original_dataset_dir = 'F:\Images Dataset\SelectedSizes'
-base_dir = 'F:\Images Dataset\BaseDir'
-base_dir_YUV = 'F:\Images Dataset\BaseDirYUV'
+base_dir = '.\\BaseDir'
+base_dir_YUV = '.\\BaseDirYUV'
 
 def crop_center(pil_img, crop_width, crop_height):
     img_width, img_height = pil_img.size
@@ -173,11 +173,16 @@ lr = num_lr
 
 #Callback para reduzir a taxa de aprendizado
 def adapt_learning_rate(epoch,lr):
-    n = int(epoch/20)
-    return lr/(10**n)
+    if (epoch % 20 == 0):
+        if (epoch != 0):
+            return lr/10
+        else:
+            return lr
+    else:
+        return lr
 
 # Camada de entrada do modelo
-inputLayer = layers.Input(shape=(600,600,3))
+inputLayer = layers.Input(shape=(41,41,3))
 
 #adicionando as camadas
 n_layers = num_layers
