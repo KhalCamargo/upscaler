@@ -36,8 +36,10 @@ if gpus:
 
 extracted_dataset_dir = 'F:\Images Dataset\\0'
 selected_dataset_dir = 'F:\Images Dataset\SelectedSizes'
+selected_dataset_Y_dir = 'F:\Images Dataset\SelectedSizes_Y'
 original_dataset_dir = 'F:\Images Dataset\SelectedSizes'
-base_dir = '.\\BaseDir'
+base_dir = 'F:\Images Dataset\BaseDir'
+base_dir_YUV = 'F:\Images Dataset\BaseDirYUV'
 
 def crop_center(pil_img, crop_width, crop_height):
     img_width, img_height = pil_img.size
@@ -51,7 +53,6 @@ FilterSizes = False
 if FilterSizes:
     def findFilesInFolder(path, pathList, extension, subFolders = True):
         """  Recursive function to find all files of an extension type in a folder (and optionally in all subfolders too)
-
         path:        Base directory to find files
         pathList:    A list that stores all paths
         extension:   File extension to find
@@ -109,28 +110,28 @@ if build_files:
             dst = os.path.join(test_dir, files)
             shutil.copyfile(src, dst)
 
-scaleImages = False
+scaleImages = True
 
 if scaleImages:
     for file in os.listdir(train_dir):
         path = os.path.join(train_dir,file)
         im = PIL.Image.open(path)
-        im_new = crop_center(im,600,600)
+        im_new = crop_center(im,41,41)
         im_new.save(path,quality=100)
 
     for file in os.listdir(validation_dir):
         path = os.path.join(validation_dir,file)
         im = PIL.Image.open(path)
-        im_new = crop_center(im,600,600)
+        im_new = crop_center(im,41,41)
         im_new.save(path,quality=100)
 
     for file in os.listdir(test_dir):
         path = os.path.join(test_dir,file)
         im = PIL.Image.open(path)
-        im_new = crop_center(im,600,600)
+        im_new = crop_center(im,41,41)
         im_new.save(path,quality=100)
 
-makeRandomScalesInput = False
+makeRandomScalesInput = True
 train_dir_scaled = os.path.join(base_dir, 'train_scaled')
 validation_dir_scaled = os.path.join(base_dir, 'validation_scaled')
 test_dir_scaled = os.path.join(base_dir, 'test_scaled')
@@ -147,7 +148,7 @@ if makeRandomScalesInput:
         path = os.path.join(train_dir,file)
         path_save = os.path.join(train_dir_scaled,file)
         im = PIL.Image.open(path)
-        im.thumbnail((int(600/scale),int(600/scale)))
+        im.thumbnail((int(41/scale),int(41/scale)),resample = PIL.Image.BICUBIC)
         im.save(path_save,quality=100)
 
     for file in os.listdir(validation_dir):
@@ -155,7 +156,7 @@ if makeRandomScalesInput:
         path = os.path.join(validation_dir,file)
         path_save = os.path.join(validation_dir_scaled,file)
         im = PIL.Image.open(path)
-        im.thumbnail((int(600/scale),int(600/scale)))
+        im.thumbnail((int(41/scale),int(41/scale)),resample = PIL.Image.BICUBIC)
         im.save(path_save,quality=100)
 
     for file in os.listdir(test_dir):
@@ -163,7 +164,7 @@ if makeRandomScalesInput:
         path = os.path.join(test_dir,file)
         path_save = os.path.join(test_dir_scaled,file)
         im = PIL.Image.open(path)
-        im.thumbnail((int(600/scale),int(600/scale)))
+        im.thumbnail((int(41/scale),int(41/scale)),resample = PIL.Image.BICUBIC)
         im.save(path_save,quality=100)
 
 
@@ -194,25 +195,19 @@ model = models.Model(inputs=inputLayer,outputs=layer_out)
 
 '''
 ##model = models.Sequential()
-
 ###Definindo camada dummy para ter acesso à entrada
 ##model.add(layers.Lambda(lambda x: x,name='input',input_shape=(3840,2160,3))) 
-
 ###Definindo a camada de entrada
 ##model.add(layers.Conv2D(64,(3,3),activation='relu',padding='same',kernel_regularizer=l2(0.0001),use_bias=False))
-
 ###Adicionando as outras camadas
 ##n_layers = 5
 ##for i in range(n_layers):
 ##    model.add(layers.Conv2D(64,(3,3),activation='relu',padding='same',kernel_regularizer=l2(0.0001),use_bias=False))
-
 ###Camada de saída com único filtro
 ##model.add(layers.Conv2D(3,(3,3),activation='relu',padding='same',kernel_regularizer=l2(0.0001),use_bias=False,name='output'))
 ##the_input = model.get_layer(index = 0)
 ##the_output = model.get_layer(index = len(model.layers) -1)
 ##layer_out = layers.add([the_input,the_output])
-
-
 ##model.add(layer_out)
 '''
 
@@ -229,36 +224,43 @@ model.summary()
 # Conjunto treinamento
 
 def load_data(data_path, target_path ,ids):
-   X = []
-   Y = []
+    X = []
+    Y = []
+    for i in ids:
+        # read one or more samples from your storage, do pre-processing, etc.
+        # for example:
+        #Carrega Imagem
+        path = os.path.join(data_path,i)
+        x = PIL.Image.open(path)    
+        #Rescala imagem com NN
+        x = x.resize((41,41),resample = PIL.Image.BICUBIC)
+        #Converte o espaço de cor
+        x = x.convert('YCbCr')
+        #Pega apenas a luminância
+        x,cb,cr = x.split()
+        #Transforma para numpy
+        x = np.asarray(x)
+        #Normaliza
+        x = x/255.0
 
-   for i in ids:
-    # read one or more samples from your storage, do pre-processing, etc.
-    # for example:
-    #Carrega Imagem
-    path = os.path.join(data_path,i)
-    x = PIL.Image.open(path)    
-    #Rescala imagem com NN
-    x = x.resize((600,600))
-    #Transforma para numpy
-    x = np.asarray(x)
-    #Normaliza
-    x = x/255.0
+        #Carrega Imagem
+        path = os.path.join(target_path,i)
+        y = PIL.Image.open(path)    
+        #Não escala imagem
 
-    #Carrega Imagem
-    path = os.path.join(target_path,i)
-    y = PIL.Image.open(path)    
-    #Não escala imagem
-    
-    #Transforma para numpy
-    y = np.asarray(y)
-    #Normaliza
-    y = y/255.0
+        #Converte o espaço de cor
+        y = y.convert('YCbCr')
+        #Pega apenas a luminância
+        y,cb,cr = y.split()    
+        #Transforma para numpy
+        y = np.asarray(y)
+        #Normaliza
+        y = y/255.0
 
-    X.append(x)
-    Y.append(y)
+        X.append(x)
+        Y.append(y)
 
-   return np.array(X), np.array(Y)
+    return np.array(X), np.array(Y)
 
 def batch_generator(data_path, target_path ,ids, batch_size = 64):
     batch=[]
@@ -286,14 +288,12 @@ a = 0
 #        #Adiciona no X_train
 #        X_train.append(im)
 #    X_train = np.array(X_train)
-
 #    y_train = list()
 #    for file in os.listdir(data_target_dir):
 #        #Carrega Imagem
 #        path = os.path.join(data_target_dir,file)
 #        im = PIL.Image.open(path)    
 #        #Não precisa dar rescale
-
 #        #Transforma para numpy
 #        im = np.asarray(im)
 #        #Normaliza
@@ -301,9 +301,7 @@ a = 0
 #        #Adiciona no X_train
 #        y_train.append(im)
 #    y_train = np.array(y_train)
-
 #    return X_train, y_train
-
 #X_train, y_train = dataset_loader(train_dir_scaled,train_dir)
 '''
 
