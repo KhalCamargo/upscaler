@@ -13,9 +13,16 @@ import numpy as np
 from keras.callbacks import CSVLogger
 
 num_batches = 64
-num_epochs = 80
+num_epochs = 100
 num_layers = 20
-num_lr = 0.0001
+num_lr = 0.01
+
+path, dirs, files = next(os.walk(".\\BaseDir\\test_scaled"))
+num_files_test = len(files)
+path, dirs, files = next(os.walk(".\\BaseDir\\validation_scaled"))
+num_files_validation = len(files)
+path, dirs, files = next(os.walk(".\\BaseDir\\train_scaled"))
+num_files_train = len(files)
 
 print('batches: ' + str(num_batches) + ' epochs: ' + str(num_epochs) + ' layers: ' +  str(num_layers) + ' rate: ' + str(num_lr))
 
@@ -39,8 +46,8 @@ extracted_dataset_dir = 'F:\Images Dataset\\0'
 selected_dataset_dir = 'F:\Images Dataset\SelectedSizes'
 selected_dataset_Y_dir = 'F:\Images Dataset\SelectedSizes_Y'
 original_dataset_dir = 'F:\Images Dataset\SelectedSizes'
-#base_dir = '.\\BaseDir'
-base_dir = 'F:\Images Dataset\BaseDir'
+base_dir = '.\\BaseDir'
+# base_dir = 'F:\Images Dataset\BaseDir'
 
 base_dir_YUV = '.\\BaseDirYUV'
 
@@ -345,11 +352,11 @@ csv_logger = CSVLogger('training.log', separator=',', append=False)
 
 
 history = model.fit_generator(train_generator,
-    steps_per_epoch = 640//num_batches,
+    steps_per_epoch = num_files_train//num_batches,
     epochs = num_epochs,
     callbacks=[csv_logger],
     validation_data=validation_generator,
-    validation_steps = 192//num_batches)
+    validation_steps = num_files_test//num_batches)
 
 model.save(filename)
 
