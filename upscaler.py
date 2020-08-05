@@ -2,6 +2,7 @@ from keras import layers
 from keras import models
 from keras.regularizers import l2
 from keras.preprocessing.image import ImageDataGenerator
+from keras import backend as K
 import PIL
 import imagesize
 import tensorflow as tf
@@ -11,10 +12,10 @@ import numpy as np
 
 from keras.callbacks import CSVLogger
 
-num_batches = 2
-num_epochs = 10
+num_batches = 64
+num_epochs = 80
 num_layers = 20
-num_lr = 0.1
+num_lr = 0.0001
 
 print('batches: ' + str(num_batches) + ' epochs: ' + str(num_epochs) + ' layers: ' +  str(num_layers) + ' rate: ' + str(num_lr))
 
@@ -38,7 +39,9 @@ extracted_dataset_dir = 'F:\Images Dataset\\0'
 selected_dataset_dir = 'F:\Images Dataset\SelectedSizes'
 selected_dataset_Y_dir = 'F:\Images Dataset\SelectedSizes_Y'
 original_dataset_dir = 'F:\Images Dataset\SelectedSizes'
-base_dir = '.\\BaseDir'
+#base_dir = '.\\BaseDir'
+base_dir = 'F:\Images Dataset\BaseDir'
+
 base_dir_YUV = '.\\BaseDirYUV'
 
 def crop_center(pil_img, crop_width, crop_height):
@@ -110,7 +113,7 @@ if build_files:
             dst = os.path.join(test_dir, files)
             shutil.copyfile(src, dst)
 
-scaleImages = True
+scaleImages = False
 
 if scaleImages:
     for file in os.listdir(train_dir):
@@ -131,7 +134,7 @@ if scaleImages:
         im_new = crop_center(im,41,41)
         im_new.save(path,quality=100)
 
-makeRandomScalesInput = True
+makeRandomScalesInput = False
 train_dir_scaled = os.path.join(base_dir, 'train_scaled')
 validation_dir_scaled = os.path.join(base_dir, 'validation_scaled')
 test_dir_scaled = os.path.join(base_dir, 'test_scaled')
@@ -182,17 +185,17 @@ def adapt_learning_rate(epoch,lr):
         return lr
 
 # Camada de entrada do modelo
-inputLayer = layers.Input(shape=(41,41,3))
+inputLayer = layers.Input(shape=(41,41,1))
 
 #adicionando as camadas
 n_layers = num_layers
 for i in range(n_layers):
     if i == 0:
-        x = layers.Conv2D(64,(3,3),activation='relu',padding='same',kernel_regularizer=l2(0.0001),use_bias=False)(inputLayer)
+        x = layers.Conv2D(64,(3,3),activation='relu',padding='same',kernel_regularizer=l2(0.0001),kernel_initializer='he_normal')(inputLayer)
     elif i == n_layers-1:
-        x = layers.Conv2D(3,(3,3),activation='relu',padding='same',kernel_regularizer=l2(0.0001),use_bias=False)(x)
+        x = layers.Conv2D(1,(3,3),activation='linear',padding='same',kernel_regularizer=l2(0.0001),kernel_initializer='he_normal')(x)
     else:
-        x = layers.Conv2D(64,(3,3),activation='relu',padding='same',kernel_regularizer=l2(0.0001),use_bias=False)(x)
+        x = layers.Conv2D(64,(3,3),activation='relu',padding='same',kernel_regularizer=l2(0.0001),kernel_initializer='he_normal')(x)
 
 #somando as camadas final e entrada para aprendizagem residual
 layer_out = layers.add([x,inputLayer])
@@ -221,8 +224,14 @@ def ssim_loss(y_true, y_pred):
   return 1 - tf.reduce_mean(tf.image.ssim(y_true, y_pred, 1.0))
 
 #Compilando o modelo
-opt = optimizers.SGD(learning_rate=lr,momentum=0.9,clipvalue=0.4)
-model.compile(optimizer=opt, loss=ssim_loss)
+#opt = optimizers.SGD(learning_rate=lr,momentum=0.9,clipvalue=0.4)
+opt = optimizers.Adam(learning_rate=lr, decay=1E-3)
+
+def PSNR(y_true, y_pred):    
+    max_pixel = 1.0    
+    return (10.0 * K.log((max_pixel ** 2) / (K.mean(K.square(y_pred - y_true), axis=-1)))) / 2.303
+
+model.compile(optimizer=opt, loss='mse',metrics=[PSNR])
 
 model.summary()
 
@@ -333,10 +342,12 @@ callback = tf.keras.callbacks.LearningRateScheduler(adapt_learning_rate, verbose
 
 csv_logger = CSVLogger('training.log', separator=',', append=False)
 
+
+
 history = model.fit_generator(train_generator,
     steps_per_epoch = 640//num_batches,
     epochs = num_epochs,
-    callbacks=[callback, csv_logger],
+    callbacks=[csv_logger],
     validation_data=validation_generator,
     validation_steps = 192//num_batches)
 
