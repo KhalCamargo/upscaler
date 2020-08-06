@@ -15,7 +15,7 @@ from keras.callbacks import CSVLogger
 num_batches = 64
 num_epochs = 100
 num_layers = 20
-num_lr = 0.01
+num_lr = 0.1
 
 path, dirs, files = next(os.walk(".\\BaseDir\\test_scaled"))
 num_files_test = len(files)
@@ -48,7 +48,7 @@ selected_dataset_dir = 'F:\Images Dataset\SelectedSizes'
 selected_dataset_Y_dir = 'F:\Images Dataset\SelectedSizes_Y'
 original_dataset_dir = 'F:\Images Dataset\SelectedSizes'
 base_dir = '.\\BaseDir'
-# base_dir = 'F:\Images Dataset\BaseDir'
+#base_dir = 'F:\Images Dataset\BaseDir'
 
 base_dir_YUV = '.\\BaseDirYUV'
 
@@ -121,28 +121,28 @@ if build_files:
             dst = os.path.join(test_dir, files)
             shutil.copyfile(src, dst)
 
-scaleImages = False
+scaleImages = True
 
 if scaleImages:
     for file in os.listdir(train_dir):
         path = os.path.join(train_dir,file)
         im = PIL.Image.open(path)
-        im_new = crop_center(im,41,41)
+        im_new = crop_center(im,600,600)
         im_new.save(path,quality=100)
 
     for file in os.listdir(validation_dir):
         path = os.path.join(validation_dir,file)
         im = PIL.Image.open(path)
-        im_new = crop_center(im,41,41)
+        im_new = crop_center(im,600,600)
         im_new.save(path,quality=100)
 
     for file in os.listdir(test_dir):
         path = os.path.join(test_dir,file)
         im = PIL.Image.open(path)
-        im_new = crop_center(im,41,41)
+        im_new = crop_center(im,600,600)
         im_new.save(path,quality=100)
 
-makeRandomScalesInput = False
+makeRandomScalesInput = True
 train_dir_scaled = os.path.join(base_dir, 'train_scaled')
 validation_dir_scaled = os.path.join(base_dir, 'validation_scaled')
 test_dir_scaled = os.path.join(base_dir, 'test_scaled')
@@ -159,7 +159,9 @@ if makeRandomScalesInput:
         path = os.path.join(train_dir,file)
         path_save = os.path.join(train_dir_scaled,file)
         im = PIL.Image.open(path)
-        im.thumbnail((int(41/scale),int(41/scale)),resample = PIL.Image.BICUBIC)
+        im = im.resize((int(600/scale),int(600/scale)),resample = PIL.Image.BICUBIC)
+        im = im.resize((600,600),resample = PIL.Image.BICUBIC)
+        im = crop_center(im,41,41)
         im.save(path_save,quality=100)
 
     for file in os.listdir(validation_dir):
@@ -167,7 +169,9 @@ if makeRandomScalesInput:
         path = os.path.join(validation_dir,file)
         path_save = os.path.join(validation_dir_scaled,file)
         im = PIL.Image.open(path)
-        im.thumbnail((int(41/scale),int(41/scale)),resample = PIL.Image.BICUBIC)
+        im = im.resize((int(600/scale),int(600/scale)),resample = PIL.Image.BICUBIC)
+        im = im.resize((600,600),resample = PIL.Image.BICUBIC)
+        im = crop_center(im,41,41)
         im.save(path_save,quality=100)
 
     for file in os.listdir(test_dir):
@@ -175,8 +179,28 @@ if makeRandomScalesInput:
         path = os.path.join(test_dir,file)
         path_save = os.path.join(test_dir_scaled,file)
         im = PIL.Image.open(path)
-        im.thumbnail((int(41/scale),int(41/scale)),resample = PIL.Image.BICUBIC)
+        im = im.resize((int(600/scale),int(600/scale)),resample = PIL.Image.BICUBIC)
+        im = im.resize((600,600),resample = PIL.Image.BICUBIC)
+        im = crop_center(im,41,41)
         im.save(path_save,quality=100)
+
+    for file in os.listdir(train_dir):
+        path = os.path.join(train_dir,file)
+        im = PIL.Image.open(path)
+        im_new = crop_center(im,41,41)
+        im_new.save(path,quality=100)
+
+    for file in os.listdir(validation_dir):
+        path = os.path.join(validation_dir,file)
+        im = PIL.Image.open(path)
+        im_new = crop_center(im,41,41)
+        im_new.save(path,quality=100)
+
+    for file in os.listdir(test_dir):
+        path = os.path.join(test_dir,file)
+        im = PIL.Image.open(path)
+        im_new = crop_center(im,41,41)
+        im_new.save(path,quality=100)
 
 
 #taxa de aprendizado
@@ -232,8 +256,8 @@ def ssim_loss(y_true, y_pred):
   return 1 - tf.reduce_mean(tf.image.ssim(y_true, y_pred, 1.0))
 
 #Compilando o modelo
-# opt = optimizers.SGD(learning_rate=lr,momentum=0.9,clipvalue=0.4)
-opt = optimizers.Adam(learning_rate=lr, decay=1E-3)
+opt = optimizers.SGD(learning_rate=lr,momentum=0.9,clipvalue=0.4)
+# opt = optimizers.Adam(learning_rate=lr, decay=1E-3)
 
 def PSNR(y_true, y_pred):    
     max_pixel = 1.0    
@@ -257,7 +281,7 @@ def load_data(data_path, target_path ,ids):
         #Converte o espaço de cor
         x = x.convert('YCbCr')
         #Rescala imagem com NN
-        x = x.resize((41,41),resample = PIL.Image.BICUBIC)        
+        #x = x.resize((41,41),resample = PIL.Image.BICUBIC) Não precisa mas rescalar        
         #Pega apenas a luminância
         x,cb,cr = x.split()
         #Transforma para numpy
@@ -355,7 +379,7 @@ csv_logger = CSVLogger('.\\train_results\\training_' + filename + '.log', separa
 history = model.fit_generator(train_generator,
     steps_per_epoch = num_files_train//num_batches,
     epochs = num_epochs,
-    callbacks=[csv_logger],
+    callbacks=[callback, csv_logger],
     validation_data=validation_generator,
     validation_steps = num_files_test//num_batches)
 
