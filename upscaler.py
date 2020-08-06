@@ -348,7 +348,7 @@ image_names = os.listdir(test_dir_scaled)
 test_generator = batch_generator(test_dir_scaled,test_dir,image_names,num_batches)
 callback = tf.keras.callbacks.LearningRateScheduler(adapt_learning_rate, verbose=1)
 
-csv_logger = CSVLogger('training.log', separator=',', append=False)
+csv_logger = CSVLogger('.\\train_results\\training_' + filename + '.log', separator=',', append=False)
 
 
 
@@ -359,6 +359,6 @@ history = model.fit_generator(train_generator,
     validation_data=validation_generator,
     validation_steps = num_files_test//num_batches)
 
-model.save(filename)
+model.save('.\\train_results\\' + filename)
 
 print("END")
