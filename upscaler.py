@@ -15,7 +15,7 @@ from keras.callbacks import CSVLogger
 num_batches = 64
 num_epochs = 100
 num_layers = 20
-num_lr = 0.01
+num_lr = 0.1
 
 path, dirs, files = next(os.walk(".\\BaseDir\\test_scaled"))
 num_files_test = len(files)
@@ -24,6 +24,7 @@ num_files_validation = len(files)
 path, dirs, files = next(os.walk(".\\BaseDir\\train_scaled"))
 num_files_train = len(files)
 
+print('num_files_test: ' + str(num_files_test) + ' num_files_validation: ' + str(num_files_validation) + ' num_files_train: ' + str(num_files_train))
 print('batches: ' + str(num_batches) + ' epochs: ' + str(num_epochs) + ' layers: ' +  str(num_layers) + ' rate: ' + str(num_lr))
 
 filename = str(num_epochs) + 'ep_' + str(num_layers) + 'ls_' + str(num_batches) + 'bt_' + str(num_lr) + 'lr.h5'
@@ -231,8 +232,8 @@ def ssim_loss(y_true, y_pred):
   return 1 - tf.reduce_mean(tf.image.ssim(y_true, y_pred, 1.0))
 
 #Compilando o modelo
-#opt = optimizers.SGD(learning_rate=lr,momentum=0.9,clipvalue=0.4)
-opt = optimizers.Adam(learning_rate=lr, decay=1E-3)
+opt = optimizers.SGD(learning_rate=lr,momentum=0.9,clipvalue=0.4)
+# opt = optimizers.Adam(learning_rate=lr, decay=1E-3)
 
 def PSNR(y_true, y_pred):    
     max_pixel = 1.0    
@@ -354,7 +355,7 @@ csv_logger = CSVLogger('training.log', separator=',', append=False)
 history = model.fit_generator(train_generator,
     steps_per_epoch = num_files_train//num_batches,
     epochs = num_epochs,
-    callbacks=[csv_logger],
+    callbacks=[callback, csv_logger],
     validation_data=validation_generator,
     validation_steps = num_files_test//num_batches)
 
