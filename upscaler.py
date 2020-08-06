@@ -15,7 +15,7 @@ from keras.callbacks import CSVLogger
 num_batches = 64
 num_epochs = 100
 num_layers = 20
-num_lr = 0.1
+num_lr = 0.01
 
 path, dirs, files = next(os.walk(".\\BaseDir\\test_scaled"))
 num_files_test = len(files)
@@ -232,8 +232,8 @@ def ssim_loss(y_true, y_pred):
   return 1 - tf.reduce_mean(tf.image.ssim(y_true, y_pred, 1.0))
 
 #Compilando o modelo
-opt = optimizers.SGD(learning_rate=lr,momentum=0.9,clipvalue=0.4)
-# opt = optimizers.Adam(learning_rate=lr, decay=1E-3)
+# opt = optimizers.SGD(learning_rate=lr,momentum=0.9,clipvalue=0.4)
+opt = optimizers.Adam(learning_rate=lr, decay=1E-3)
 
 def PSNR(y_true, y_pred):    
     max_pixel = 1.0    
@@ -355,7 +355,7 @@ csv_logger = CSVLogger('.\\train_results\\training_' + filename + '.log', separa
 history = model.fit_generator(train_generator,
     steps_per_epoch = num_files_train//num_batches,
     epochs = num_epochs,
-    callbacks=[callback, csv_logger],
+    callbacks=[csv_logger],
     validation_data=validation_generator,
     validation_steps = num_files_test//num_batches)
 
