@@ -199,11 +199,11 @@ inputLayer = layers.Input(shape=(41,41,1))
 n_layers = num_layers
 for i in range(n_layers):
     if i == 0:
-        x = layers.Conv2D(64,(3,3),activation='relu',padding='same',kernel_regularizer=l2(0.0001),kernel_initializer='he_normal')(inputLayer)
+        x = layers.Conv2D(64,(3,3),activation='relu',padding='same',kernel_initializer='he_normal')(inputLayer)
     elif i == n_layers-1:
-        x = layers.Conv2D(1,(3,3),activation='linear',padding='same',kernel_regularizer=l2(0.0001),kernel_initializer='he_normal')(x)
+        x = layers.Conv2D(1,(3,3),activation='linear',padding='same',kernel_initializer='he_normal')(x)
     else:
-        x = layers.Conv2D(64,(3,3),activation='relu',padding='same',kernel_regularizer=l2(0.0001),kernel_initializer='he_normal')(x)
+        x = layers.Conv2D(64,(3,3),activation='relu',padding='same',kernel_initializer='he_normal')(x)
 
 #somando as camadas final e entrada para aprendizagem residual
 layer_out = layers.add([x,inputLayer])
@@ -254,10 +254,10 @@ def load_data(data_path, target_path ,ids):
         #Carrega Imagem
         path = os.path.join(data_path,i)
         x = PIL.Image.open(path)    
-        #Rescala imagem com NN
-        x = x.resize((41,41),resample = PIL.Image.BICUBIC)
         #Converte o espaço de cor
         x = x.convert('YCbCr')
+        #Rescala imagem com NN
+        x = x.resize((41,41),resample = PIL.Image.BICUBIC)        
         #Pega apenas a luminância
         x,cb,cr = x.split()
         #Transforma para numpy
