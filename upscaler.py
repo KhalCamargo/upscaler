@@ -15,17 +15,17 @@ from keras.callbacks import CSVLogger
 num_batches = 64
 num_epochs = 100
 num_layers = 20
-num_lr = 0.1
+num_lr = 0.01
 
-path, dirs, files = next(os.walk(".\\BaseDir\\test_scaled"))
+path, dirs, files = next(os.walk("F:\Images Dataset\BaseDir\\test_scaled"))
 num_files_test = len(files)
-path, dirs, files = next(os.walk(".\\BaseDir\\validation_scaled"))
+path, dirs, files = next(os.walk("F:\Images Dataset\BaseDir\\validation_scaled"))
 num_files_validation = len(files)
-path, dirs, files = next(os.walk(".\\BaseDir\\train_scaled"))
+path, dirs, files = next(os.walk("F:\Images Dataset\BaseDir\\train_scaled"))
 num_files_train = len(files)
 
-print('num_files_test: ' + str(num_files_test) + ' num_files_validation: ' + str(num_files_validation) + ' num_files_train: ' + str(num_files_train))
-print('batches: ' + str(num_batches) + ' epochs: ' + str(num_epochs) + ' layers: ' +  str(num_layers) + ' rate: ' + str(num_lr))
+#print('num_files_test: ' + str(num_files_test) + ' num_files_validation: ' + str(num_files_validation) + ' num_files_train: ' + str(num_files_train))
+#print('batches: ' + str(num_batches) + ' epochs: ' + str(num_epochs) + ' layers: ' +  str(num_layers) + ' rate: ' + str(num_lr))
 
 filename = str(num_epochs) + 'ep_' + str(num_layers) + 'ls_' + str(num_batches) + 'bt_' + str(num_lr) + 'lr.h5'
 print("Filename will be: ", filename)
@@ -48,7 +48,7 @@ selected_dataset_dir = 'F:\Images Dataset\SelectedSizes'
 selected_dataset_Y_dir = 'F:\Images Dataset\SelectedSizes_Y'
 original_dataset_dir = 'F:\Images Dataset\SelectedSizes'
 base_dir = '.\\BaseDir'
-#base_dir = 'F:\Images Dataset\BaseDir'
+base_dir = 'F:\Images Dataset\BaseDir'
 
 base_dir_YUV = '.\\BaseDirYUV'
 
@@ -59,6 +59,8 @@ def crop_center(pil_img, crop_width, crop_height):
                          (img_width + crop_width) // 2,
                          (img_height + crop_height) // 2))
 
+
+# Khal Roda o Filter Sizes no extracted_path se deseja selecionar imagens maiores que 300*300 para o SelectedSizes
 FilterSizes = False
 
 if FilterSizes:
@@ -74,7 +76,7 @@ if FilterSizes:
             for entry in os.scandir(path):
                 if entry.is_file() and entry.path.endswith(extension):
                     w, h = imagesize.get(entry.path)
-                    if (w >= 600) and (h >= 600):
+                    if (w >= 300) and (h >= 300):
                         pathList.append(entry.path)
                         dst = os.path.join(selected_dataset_dir, entry.name)
                         shutil.copyfile(entry.path,dst)
@@ -90,6 +92,7 @@ if FilterSizes:
     pathList = []
     pathList = findFilesInFolder(extracted_dataset_dir, pathList, extension, True)
 
+# Khal roda o build_files pra criar o BaseDir e os train, validation e test
 build_files = False
 
 train_dir = os.path.join(base_dir, 'train')
@@ -105,44 +108,46 @@ if build_files:
     os.mkdir(test_dir)
 
     for i,files in enumerate(os.listdir(original_dataset_dir)):
-        if i < 640:
+        if i < 640: #Khal coloca numero que corresponda a 60% das imagens totais e que seja divisivel por 64
             #copia para train
             src = os.path.join(original_dataset_dir, files)
             dst = os.path.join(train_dir, files)
             shutil.copyfile(src, dst)
-        elif i < 832:
+        elif i < 832: #Khal coloca numero que corresponda a 20% das imagens totais e que seja divisivel por 64
             #copia para val
             src = os.path.join(original_dataset_dir, files)
             dst = os.path.join(validation_dir, files)
             shutil.copyfile(src, dst)
-        elif i < 1024:
+        elif i < 1024: #Khal coloca numero que corresponda a 20% das imagens totais e que seja divisivel por 64
             #copia para teste
             src = os.path.join(original_dataset_dir, files)
             dst = os.path.join(test_dir, files)
             shutil.copyfile(src, dst)
 
-scaleImages = True
+# Khal roda o scaleImages para cortar as imagens nos quadrados 300*300
+scaleImages = False
 
 if scaleImages:
     for file in os.listdir(train_dir):
         path = os.path.join(train_dir,file)
         im = PIL.Image.open(path)
-        im_new = crop_center(im,600,600)
+        im_new = crop_center(im,300,300)
         im_new.save(path,quality=100)
 
     for file in os.listdir(validation_dir):
         path = os.path.join(validation_dir,file)
         im = PIL.Image.open(path)
-        im_new = crop_center(im,600,600)
+        im_new = crop_center(im,300,300)
         im_new.save(path,quality=100)
 
     for file in os.listdir(test_dir):
         path = os.path.join(test_dir,file)
         im = PIL.Image.open(path)
-        im_new = crop_center(im,600,600)
+        im_new = crop_center(im,300,300)
         im_new.save(path,quality=100)
 
-makeRandomScalesInput = True
+#Khal roda o makeRandom para criar os diretorios _scaled com as imagens escaladas e esticadas
+makeRandomScalesInput = False
 train_dir_scaled = os.path.join(base_dir, 'train_scaled')
 validation_dir_scaled = os.path.join(base_dir, 'validation_scaled')
 test_dir_scaled = os.path.join(base_dir, 'test_scaled')
@@ -159,8 +164,8 @@ if makeRandomScalesInput:
         path = os.path.join(train_dir,file)
         path_save = os.path.join(train_dir_scaled,file)
         im = PIL.Image.open(path)
-        im = im.resize((int(600/scale),int(600/scale)),resample = PIL.Image.BICUBIC)
-        im = im.resize((600,600),resample = PIL.Image.BICUBIC)
+        im = im.resize((int(300/scale),int(300/scale)),resample = PIL.Image.BICUBIC)
+        im = im.resize((300,300),resample = PIL.Image.BICUBIC)
         im = crop_center(im,41,41)
         im.save(path_save,quality=100)
 
@@ -169,8 +174,8 @@ if makeRandomScalesInput:
         path = os.path.join(validation_dir,file)
         path_save = os.path.join(validation_dir_scaled,file)
         im = PIL.Image.open(path)
-        im = im.resize((int(600/scale),int(600/scale)),resample = PIL.Image.BICUBIC)
-        im = im.resize((600,600),resample = PIL.Image.BICUBIC)
+        im = im.resize((int(300/scale),int(300/scale)),resample = PIL.Image.BICUBIC)
+        im = im.resize((300,300),resample = PIL.Image.BICUBIC)
         im = crop_center(im,41,41)
         im.save(path_save,quality=100)
 
@@ -179,8 +184,8 @@ if makeRandomScalesInput:
         path = os.path.join(test_dir,file)
         path_save = os.path.join(test_dir_scaled,file)
         im = PIL.Image.open(path)
-        im = im.resize((int(600/scale),int(600/scale)),resample = PIL.Image.BICUBIC)
-        im = im.resize((600,600),resample = PIL.Image.BICUBIC)
+        im = im.resize((int(300/scale),int(300/scale)),resample = PIL.Image.BICUBIC)
+        im = im.resize((300,300),resample = PIL.Image.BICUBIC)
         im = crop_center(im,41,41)
         im.save(path_save,quality=100)
 
@@ -202,7 +207,7 @@ if makeRandomScalesInput:
         im_new = crop_center(im,41,41)
         im_new.save(path,quality=100)
 
-
+# Khal poe o break
 #taxa de aprendizado
 lr = num_lr
 
@@ -257,7 +262,7 @@ def ssim_loss(y_true, y_pred):
 
 #Compilando o modelo
 opt = optimizers.SGD(learning_rate=lr,momentum=0.9,clipvalue=0.4)
-# opt = optimizers.Adam(learning_rate=lr, decay=1E-3)
+opt = optimizers.Adam(learning_rate=lr, decay=1E-3)
 
 def PSNR(y_true, y_pred):    
     max_pixel = 1.0    
@@ -379,7 +384,7 @@ csv_logger = CSVLogger('.\\train_results\\training_' + filename + '.log', separa
 history = model.fit_generator(train_generator,
     steps_per_epoch = num_files_train//num_batches,
     epochs = num_epochs,
-    callbacks=[callback, csv_logger],
+    callbacks=[csv_logger],
     validation_data=validation_generator,
     validation_steps = num_files_test//num_batches)
 
