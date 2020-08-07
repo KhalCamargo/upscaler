@@ -17,12 +17,14 @@ num_epochs = 100
 num_layers = 20
 num_lr = 0.01
 
-path, dirs, files = next(os.walk("F:\Images Dataset\BaseDir\\test_scaled"))
-num_files_test = len(files)
-path, dirs, files = next(os.walk("F:\Images Dataset\BaseDir\\validation_scaled"))
-num_files_validation = len(files)
-path, dirs, files = next(os.walk("F:\Images Dataset\BaseDir\\train_scaled"))
-num_files_train = len(files)
+# path, dirs, files = next(os.walk(".\\BaseDir\\test_scaled"))
+# num_files_test = len(files)
+num_files_test = 3968
+# path, dirs, files = next(os.walk(".\\BaseDir\\validation_scaled"))
+# num_files_validation = len(files)
+num_files_validation = 3968
+# path, dirs, files = next(os.walk(".\\BaseDir\\train_scaled"))
+num_files_train = 12032
 
 #print('num_files_test: ' + str(num_files_test) + ' num_files_validation: ' + str(num_files_validation) + ' num_files_train: ' + str(num_files_train))
 #print('batches: ' + str(num_batches) + ' epochs: ' + str(num_epochs) + ' layers: ' +  str(num_layers) + ' rate: ' + str(num_lr))
@@ -43,12 +45,12 @@ if gpus:
         print(e)
 
 
-extracted_dataset_dir = 'F:\Images Dataset\\0'
-selected_dataset_dir = 'F:\Images Dataset\SelectedSizes'
-selected_dataset_Y_dir = 'F:\Images Dataset\SelectedSizes_Y'
-original_dataset_dir = 'F:\Images Dataset\SelectedSizes'
+extracted_dataset_dir = '.\\0'
+selected_dataset_dir = '.\\extracted'
+selected_dataset_Y_dir = '.\\BaseDir\\SelectedSizes_Y'
+original_dataset_dir = '.\\extracted'
 base_dir = '.\\BaseDir'
-base_dir = 'F:\Images Dataset\BaseDir'
+# base_dir = 'F:\Images Dataset\BaseDir'
 
 base_dir_YUV = '.\\BaseDirYUV'
 
@@ -108,17 +110,17 @@ if build_files:
     os.mkdir(test_dir)
 
     for i,files in enumerate(os.listdir(original_dataset_dir)):
-        if i < 640: #Khal coloca numero que corresponda a 60% das imagens totais e que seja divisivel por 64
+        if i < 12032: #Khal coloca numero que corresponda a 60% das imagens totais e que seja divisivel por 64
             #copia para train
             src = os.path.join(original_dataset_dir, files)
             dst = os.path.join(train_dir, files)
             shutil.copyfile(src, dst)
-        elif i < 832: #Khal coloca numero que corresponda a 20% das imagens totais e que seja divisivel por 64
+        elif i < 16000: #Khal coloca numero que corresponda a 20% das imagens totais e que seja divisivel por 64
             #copia para val
             src = os.path.join(original_dataset_dir, files)
             dst = os.path.join(validation_dir, files)
             shutil.copyfile(src, dst)
-        elif i < 1024: #Khal coloca numero que corresponda a 20% das imagens totais e que seja divisivel por 64
+        elif i < 19968: #Khal coloca numero que corresponda a 20% das imagens totais e que seja divisivel por 64
             #copia para teste
             src = os.path.join(original_dataset_dir, files)
             dst = os.path.join(test_dir, files)
@@ -130,24 +132,24 @@ scaleImages = False
 if scaleImages:
     for file in os.listdir(train_dir):
         path = os.path.join(train_dir,file)
-        im = PIL.Image.open(path)
+        im = PIL.Image.open(path).convert('RGB')
         im_new = crop_center(im,300,300)
         im_new.save(path,quality=100)
 
     for file in os.listdir(validation_dir):
         path = os.path.join(validation_dir,file)
-        im = PIL.Image.open(path)
+        im = PIL.Image.open(path).convert('RGB')
         im_new = crop_center(im,300,300)
         im_new.save(path,quality=100)
 
     for file in os.listdir(test_dir):
         path = os.path.join(test_dir,file)
-        im = PIL.Image.open(path)
+        im = PIL.Image.open(path).convert('RGB')
         im_new = crop_center(im,300,300)
         im_new.save(path,quality=100)
 
 #Khal roda o makeRandom para criar os diretorios _scaled com as imagens escaladas e esticadas
-makeRandomScalesInput = False
+makeRandomScalesInput = True
 train_dir_scaled = os.path.join(base_dir, 'train_scaled')
 validation_dir_scaled = os.path.join(base_dir, 'validation_scaled')
 test_dir_scaled = os.path.join(base_dir, 'test_scaled')
@@ -157,7 +159,7 @@ if makeRandomScalesInput:
     os.mkdir(validation_dir_scaled)    
     os.mkdir(test_dir_scaled)
 
-    scales = [1.5,2,2.5,3,4]
+    scales = [2]
     np.random.seed(0)
     for file in os.listdir(train_dir):
         scale = np.random.choice(scales)
@@ -261,7 +263,7 @@ def ssim_loss(y_true, y_pred):
   return 1 - tf.reduce_mean(tf.image.ssim(y_true, y_pred, 1.0))
 
 #Compilando o modelo
-opt = optimizers.SGD(learning_rate=lr,momentum=0.9,clipvalue=0.4)
+# opt = optimizers.SGD(learning_rate=lr,momentum=0.9,clipvalue=0.4)
 opt = optimizers.Adam(learning_rate=lr, decay=1E-3)
 
 def PSNR(y_true, y_pred):    
