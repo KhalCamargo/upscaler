@@ -1,6 +1,10 @@
 #basedir
 BaseDir/
+0/
+extracted/
+iaprtc12/
 
+BaseDir.rar
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
