@@ -2,9 +2,8 @@
 BaseDir/
 0/
 extracted/
-iaprtc12/
+datasets_original/
 
-BaseDir.rar
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
