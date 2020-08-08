@@ -5,6 +5,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras import backend as K
 import PIL
 import imagesize
+import random
 import tensorflow as tf
 import os, shutil
 from keras import *
@@ -50,6 +51,10 @@ selected_dataset_dir = '.\\extracted'
 selected_dataset_Y_dir = '.\\BaseDir\\SelectedSizes_Y'
 original_dataset_dir = '.\\extracted'
 base_dir = '.\\BaseDir'
+BaseDir = '.\\NewBase'
+AllImgDir = '.\\extractedReduced'
+AllImgDir = 'F:\\Images Dataset\\SelectedSizesReduced'
+BaseDir = 'F:\\Images Dataset\\NewBase'
 # base_dir = 'F:\Images Dataset\BaseDir'
 
 base_dir_YUV = '.\\BaseDirYUV'
@@ -95,122 +100,122 @@ if FilterSizes:
     pathList = findFilesInFolder(extracted_dataset_dir, pathList, extension, True)
 
 # Khal roda o build_files pra criar o BaseDir e os train, validation e test
-build_files = False
+os.mkdir(BaseDir)
 
-train_dir = os.path.join(base_dir, 'train')
-validation_dir = os.path.join(base_dir, 'validation')
-test_dir = os.path.join(base_dir, 'test')
-if build_files:  
+train_dir = os.path.join(BaseDir,'train')
+validation_dir = os.path.join(BaseDir,'validation')
+test_dir = os.path.join(BaseDir,'test')
 
-    os.mkdir(base_dir)    
-    os.mkdir(train_dir)    
-    os.mkdir(validation_dir)
+X_train_dir = os.path.join(train_dir,'X_patches')
+y_train_dir = os.path.join(train_dir,'y_patches')
+
+X_validation_dir = os.path.join(validation_dir,'X_patches')
+y_validation_dir = os.path.join(validation_dir,'y_patches')
+
+def extractTrainValidationTest(basePath,trainPct,valPct,testPct):
+    train_names = []
+    validation_names = []
+    test_names = []
 
     
+
+    os.mkdir(train_dir)
+    os.mkdir(validation_dir)
     os.mkdir(test_dir)
 
-    for i,files in enumerate(os.listdir(original_dataset_dir)):
-        if i < 12032: #Khal coloca numero que corresponda a 60% das imagens totais e que seja divisivel por 64
-            #copia para train
-            src = os.path.join(original_dataset_dir, files)
-            dst = os.path.join(train_dir, files)
-            shutil.copyfile(src, dst)
-        elif i < 16000: #Khal coloca numero que corresponda a 20% das imagens totais e que seja divisivel por 64
-            #copia para val
-            src = os.path.join(original_dataset_dir, files)
-            dst = os.path.join(validation_dir, files)
-            shutil.copyfile(src, dst)
-        elif i < 19968: #Khal coloca numero que corresponda a 20% das imagens totais e que seja divisivel por 64
-            #copia para teste
-            src = os.path.join(original_dataset_dir, files)
-            dst = os.path.join(test_dir, files)
-            shutil.copyfile(src, dst)
+    os.mkdir(X_train_dir)
+    os.mkdir(y_train_dir)
+    os.mkdir(X_validation_dir)
+    os.mkdir(y_validation_dir)
 
-# Khal roda o scaleImages para cortar as imagens nos quadrados 300*300
-scaleImages = False
+    #List all available files
+    allFiles = os.listdir(basePath)
 
-if scaleImages:
-    for file in os.listdir(train_dir):
-        path = os.path.join(train_dir,file)
-        im = PIL.Image.open(path).convert('RGB')
-        im_new = crop_center(im,300,300)
-        im_new.save(path,quality=100)
+    #Nb of files for each folder
+    nbTrain = int(trainPct*len(allFiles))
+    nbVal = int(valPct*len(allFiles))
+    nbTest = int(testPct*len(allFiles))
 
-    for file in os.listdir(validation_dir):
-        path = os.path.join(validation_dir,file)
-        im = PIL.Image.open(path).convert('RGB')
-        im_new = crop_center(im,300,300)
-        im_new.save(path,quality=100)
+    for el in range(nbTrain):
+        file = np.random.choice(allFiles)
+        allFiles.remove(file)
+        train_names.append(file)
+        src = os.path.join(basePath,file)
+        dst = os.path.join(train_dir,file)
+        shutil.copyfile(src,dst)
 
-    for file in os.listdir(test_dir):
-        path = os.path.join(test_dir,file)
-        im = PIL.Image.open(path).convert('RGB')
-        im_new = crop_center(im,300,300)
-        im_new.save(path,quality=100)
-
-#Khal roda o makeRandom para criar os diretorios _scaled com as imagens escaladas e esticadas
-makeRandomScalesInput = True
-train_dir_scaled = os.path.join(base_dir, 'train_scaled')
-validation_dir_scaled = os.path.join(base_dir, 'validation_scaled')
-test_dir_scaled = os.path.join(base_dir, 'test_scaled')
-if makeRandomScalesInput:
+    for el in range(nbVal):
+        file = np.random.choice(allFiles)
+        allFiles.remove(file)
+        validation_names.append(file)
+        src = os.path.join(basePath,file)
+        dst = os.path.join(validation_dir,file)
+        shutil.copyfile(src,dst)
     
-    os.mkdir(train_dir_scaled)    
-    os.mkdir(validation_dir_scaled)    
-    os.mkdir(test_dir_scaled)
+    for el in range(nbTest):
+        file = np.random.choice(allFiles)
+        allFiles.remove(file)
+        test_names.append(file)
+        src = os.path.join(basePath,file)
+        dst = os.path.join(test_dir,file)
+        shutil.copyfile(src,dst)
 
-    scales = [2]
-    np.random.seed(0)
-    for file in os.listdir(train_dir):
-        scale = np.random.choice(scales)
-        path = os.path.join(train_dir,file)
-        path_save = os.path.join(train_dir_scaled,file)
-        im = PIL.Image.open(path)
-        im = im.resize((int(300/scale),int(300/scale)),resample = PIL.Image.BICUBIC)
-        im = im.resize((300,300),resample = PIL.Image.BICUBIC)
-        im = crop_center(im,41,41)
-        im.save(path_save,quality=100)
+    return train_names,validation_names,test_names
 
-    for file in os.listdir(validation_dir):
-        scale = np.random.choice(scales)
-        path = os.path.join(validation_dir,file)
-        path_save = os.path.join(validation_dir_scaled,file)
-        im = PIL.Image.open(path)
-        im = im.resize((int(300/scale),int(300/scale)),resample = PIL.Image.BICUBIC)
-        im = im.resize((300,300),resample = PIL.Image.BICUBIC)
-        im = crop_center(im,41,41)
-        im.save(path_save,quality=100)
+def createAndSavePatches():
+    #Para cada imagem
+    forTrain = [train_dir,X_train_dir,y_train_dir]
+    forVal = [validation_dir,X_validation_dir,y_validation_dir]
 
-    for file in os.listdir(test_dir):
-        scale = np.random.choice(scales)
-        path = os.path.join(test_dir,file)
-        path_save = os.path.join(test_dir_scaled,file)
-        im = PIL.Image.open(path)
-        im = im.resize((int(300/scale),int(300/scale)),resample = PIL.Image.BICUBIC)
-        im = im.resize((300,300),resample = PIL.Image.BICUBIC)
-        im = crop_center(im,41,41)
-        im.save(path_save,quality=100)
+    TheDirs = [forTrain,forVal]
 
-    for file in os.listdir(train_dir):
-        path = os.path.join(train_dir,file)
-        im = PIL.Image.open(path)
-        im_new = crop_center(im,41,41)
-        im_new.save(path,quality=100)
+    for set in TheDirs:
 
-    for file in os.listdir(validation_dir):
-        path = os.path.join(validation_dir,file)
-        im = PIL.Image.open(path)
-        im_new = crop_center(im,41,41)
-        im_new.save(path,quality=100)
+        for file in os.listdir(set[0]):
+            if file[-3:] == 'jpg':
+                #para a saída
 
-    for file in os.listdir(test_dir):
-        path = os.path.join(test_dir,file)
-        im = PIL.Image.open(path)
-        im_new = crop_center(im,41,41)
-        im_new.save(path,quality=100)
+                #abre img
+                imagePath = os.path.join(set[0],file)
+                imgOut = PIL.Image.open(imagePath)
+                #transforma em np
+                imgOutArr = np.asarray(imgOut)
+                #extrai os patches
+                patchesOut = extract_patches_2d(imgOutArr,(41,41),64,0)
+                for i,patch in enumerate(patchesOut):
+                    #converte em imagem
+                    img = PIL.Image.fromarray(patch)
+                    #salva
+                    name, ext = os.path.splitext(file)
+                    name = name + '_' + str(i) + '.jpg'
+                    dst = os.path.join(set[2],name)
+                    img.save(dst)
+            
+                #para a entrada
+                imgIn = imgOut
+                imgIn = imgIn.resize((int(imgOut.width/2),int(imgOut.height/2)),PIL.Image.BICUBIC)
+                imgIn = imgIn.resize((int(imgOut.width),int(imgOut.height)),PIL.Image.BICUBIC)
+                imgInArr = np.asarray(imgIn)
+                #extrai os patches
+                patchesIn = extract_patches_2d(imgInArr,(41,41),64,0)
+                for i,patch in enumerate(patchesIn):
+                    #converte em imagem
+                    img = PIL.Image.fromarray(patch)
+                    #salva
+                    name, ext = os.path.splitext(file)
+                    name = name + '_' + str(i) + '.jpg'
+                    dst = os.path.join(set[1],name)
+                    img.save(dst)
 
+#extractTrainValidationTest(AllImgDir,0.6,0.2,0.2)
+
+#createAndSavePatches()
 # Khal poe o break
 #taxa de aprendizado
+
+
+
+
 lr = num_lr
 
 #Callback para reduzir a taxa de aprendizado
@@ -360,12 +365,14 @@ a = 0
 
 
 
-image_names = os.listdir(train_dir_scaled)
-train_generator = batch_generator(train_dir_scaled,train_dir,image_names,num_batches)
+image_names = os.listdir(X_train_dir)
+random.shuffle(image_names)
+train_generator = batch_generator(X_train_dir,y_train_dir,image_names,num_batches)
 
 # Conjunto validação
-image_names = os.listdir(validation_dir_scaled)
-validation_generator = batch_generator(validation_dir_scaled,validation_dir,image_names,num_batches)
+image_names = os.listdir(X_validation_dir)
+random.shuffle(image_names)
+validation_generator = batch_generator(X_validation_dir,y_validation_dir,image_names,num_batches)
 
 # Conjunto teste
 #test_datagen = ImageDataGenerator(rescale=1./255)
@@ -375,8 +382,8 @@ validation_generator = batch_generator(validation_dir_scaled,validation_dir,imag
 #    batch_size=64,
 #    class_mode=None,
 #    shuffle = False)
-image_names = os.listdir(test_dir_scaled)
-test_generator = batch_generator(test_dir_scaled,test_dir,image_names,num_batches)
+#image_names = os.listdir(test_dir_scaled)
+#test_generator = batch_generator(test_dir_scaled,test_dir,image_names,num_batches)
 callback = tf.keras.callbacks.LearningRateScheduler(adapt_learning_rate, verbose=1)
 
 csv_logger = CSVLogger('.\\train_results\\training_' + filename + '.log', separator=',', append=False)
