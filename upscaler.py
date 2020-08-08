@@ -16,7 +16,7 @@ from sklearn.feature_extraction.image import extract_patches_2d
 from keras.callbacks import CSVLogger
 
 num_batches = 64
-num_epochs = 100
+num_epochs = 23
 num_layers = 20
 num_lr = 0.01
 
