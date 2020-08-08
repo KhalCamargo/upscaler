@@ -102,7 +102,7 @@ if FilterSizes:
     pathList = findFilesInFolder(extracted_dataset_dir, pathList, extension, True)
 
 # Khal roda o build_files pra criar o BaseDir e os train, validation e test
-os.mkdir(BaseDir)
+#os.mkdir(BaseDir)
 
 train_dir = os.path.join(BaseDir,'train')
 validation_dir = os.path.join(BaseDir,'validation')
@@ -209,9 +209,9 @@ def createAndSavePatches():
                     dst = os.path.join(set[1],name)
                     img.save(dst)
 
-extractTrainValidationTest(AllImgDir,0.6,0.2,0.2)
+#extractTrainValidationTest(AllImgDir,0.6,0.2,0.2)
 
-createAndSavePatches()
+#createAndSavePatches()
 # Khal poe o break
 #taxa de aprendizado
 
@@ -397,7 +397,7 @@ history = model.fit_generator(train_generator,
     epochs = num_epochs,
     callbacks=[csv_logger],
     validation_data=validation_generator,
-    validation_steps = num_files_test//num_batches)
+    validation_steps = num_files_validation//num_batches)
 
 model.save('.\\train_results\\' + filename)
 
