@@ -209,9 +209,9 @@ def createAndSavePatches():
                     dst = os.path.join(set[1],name)
                     img.save(dst)
 
-#extractTrainValidationTest(AllImgDir,0.6,0.2,0.2)
+extractTrainValidationTest(AllImgDir,0.6,0.2,0.2)
 
-#createAndSavePatches()
+createAndSavePatches()
 # Khal poe o break
 #taxa de aprendizado
 
