@@ -10,6 +10,8 @@ import tensorflow as tf
 import os, shutil
 from keras import *
 import numpy as np
+from sklearn.utils import shuffle
+from sklearn.feature_extraction.image import extract_patches_2d
 
 from keras.callbacks import CSVLogger
 
@@ -23,9 +25,9 @@ num_lr = 0.01
 num_files_test = 3968
 # path, dirs, files = next(os.walk(".\\BaseDir\\validation_scaled"))
 # num_files_validation = len(files)
-num_files_validation = 3968
+num_files_validation = 6400
 # path, dirs, files = next(os.walk(".\\BaseDir\\train_scaled"))
-num_files_train = 12032
+num_files_train = 19328
 
 #print('num_files_test: ' + str(num_files_test) + ' num_files_validation: ' + str(num_files_validation) + ' num_files_train: ' + str(num_files_train))
 #print('batches: ' + str(num_batches) + ' epochs: ' + str(num_epochs) + ' layers: ' +  str(num_layers) + ' rate: ' + str(num_lr))
@@ -53,8 +55,8 @@ original_dataset_dir = '.\\extracted'
 base_dir = '.\\BaseDir'
 BaseDir = '.\\NewBase'
 AllImgDir = '.\\extractedReduced'
-AllImgDir = 'F:\\Images Dataset\\SelectedSizesReduced'
-BaseDir = 'F:\\Images Dataset\\NewBase'
+#AllImgDir = 'F:\\Images Dataset\\SelectedSizesReduced'
+#BaseDir = 'F:\\Images Dataset\\NewBase'
 # base_dir = 'F:\Images Dataset\BaseDir'
 
 base_dir_YUV = '.\\BaseDirYUV'
