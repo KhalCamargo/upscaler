@@ -302,6 +302,7 @@ def load_data(data_path, target_path ,ids):
         x = np.asarray(x)
         #Normaliza
         x = x/255.0
+        x = x.reshape(41,41,1)
 
         #Carrega Imagem
         path = os.path.join(target_path,i)
@@ -316,6 +317,7 @@ def load_data(data_path, target_path ,ids):
         y = np.asarray(y)
         #Normaliza
         y = y/255.0
+        y = y.reshape(41,41,1)
 
         X.append(x)
         Y.append(y)
