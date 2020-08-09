@@ -244,7 +244,8 @@ for i in range(n_layers):
         x = layers.Conv2D(64,(3,3),activation='relu',padding='same',kernel_initializer='he_normal')(x)
 
 #somando as camadas final e entrada para aprendizagem residual
-layer_out = layers.add([x,inputLayer])
+#layer_out = layers.add([x,inputLayer])
+layer_out = x
 model = models.Model(inputs=inputLayer,outputs=layer_out)
 
 '''
@@ -302,7 +303,7 @@ def load_data(data_path, target_path ,ids):
         x = np.asarray(x)
         #Normaliza
         x = x/255.0
-        x = x.reshape(41,41,1)
+       
 
         #Carrega Imagem
         path = os.path.join(target_path,i)
@@ -317,8 +318,12 @@ def load_data(data_path, target_path ,ids):
         y = np.asarray(y)
         #Normaliza
         y = y/255.0
-        y = y.reshape(41,41,1)
 
+        #Resíduo
+        y = y-x
+
+        x = x.reshape(41,41,1)
+        y = y.reshape(41,41,1)
         X.append(x)
         Y.append(y)
 
