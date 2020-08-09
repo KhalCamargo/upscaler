@@ -55,6 +55,7 @@ if __name__=='__main__':
     for k, patch in enumerate(crop(padded_img, patch_height, patch_width), start_patch):
         out_img = Image.new('RGB', (patch_height, patch_width), 0)
         out_img.paste(patch)
+        os.makedirs(os.path.dirname('.\\patches\\'), exist_ok=True)
         path=os.path.join('.\\patches\\',"IMG-%s.jpg" % k)
         out_img.save(path)
     
