@@ -55,11 +55,13 @@ def PSNR(y_true, y_pred):
 
 model.compile(optimizer=opt, loss='mse',metrics=[PSNR])
 
+csv_logger = CSVLogger('.\\train_results\\training_' + filename + '.log', separator=',', append=False)
 model.summary()
 
 history = model.fit(input_train,label_train,
                     batch_size = num_batches,
                     epochs = num_epochs,
+                    callbacks=[csv_logger],
                     validation_split = 0.2)
 
 model.save('.\\train_results\\' + 'TorchData_' + filename)
