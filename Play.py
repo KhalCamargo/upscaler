@@ -26,7 +26,7 @@ label_train = np.transpose(label_train,(0,2,3,1))
 
 num_batches = 64
 num_epochs = 100
-num_layers = 20
+num_layers = 19
 num_lr = 0.01
 filename = str(num_epochs) + 'ep_' + str(num_layers) + 'ls_' + str(num_batches) + 'bt_' + str(num_lr) + 'lr.h5'
 # Camada de entrada do modelo
