@@ -16,7 +16,7 @@ import h5py
 
 from keras.callbacks import CSVLogger
 
-f = h5py.File('train.h5', 'r')
+f = h5py.File('F:\\Images Dataset\\train_reduced.h5', 'r')
 input_train = f['data'][...]
 label_train = f['label'][...]
 f.close()
@@ -26,7 +26,7 @@ label_train = np.transpose(label_train,(0,2,3,1))
 
 num_batches = 64
 num_epochs = 100
-num_layers = 19
+num_layers = 20
 num_lr = 0.01
 filename = str(num_epochs) + 'ep_' + str(num_layers) + 'ls_' + str(num_batches) + 'bt_' + str(num_lr) + 'lr.h5'
 # Camada de entrada do modelo
@@ -55,13 +55,11 @@ def PSNR(y_true, y_pred):
 
 model.compile(optimizer=opt, loss='mse',metrics=[PSNR])
 
-csv_logger = CSVLogger('.\\train_results\\training_' + filename + '.log', separator=',', append=False)
 model.summary()
 
 history = model.fit(input_train,label_train,
                     batch_size = num_batches,
                     epochs = num_epochs,
-                    callbacks=[csv_logger],
                     validation_split = 0.2)
 
 model.save('.\\train_results\\' + 'TorchData_' + filename)
