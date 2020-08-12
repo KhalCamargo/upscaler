@@ -16,7 +16,7 @@ import h5py
 
 from keras.callbacks import CSVLogger
 
-f = h5py.File('F:\\Images Dataset\\train_reduced.h5', 'r')
+f = h5py.File('train_reduced.h5', 'r')
 input_train = f['data'][...]
 label_train = f['label'][...]
 f.close()
@@ -55,14 +55,16 @@ def PSNR(y_true, y_pred):
 
 model.compile(optimizer=opt, loss='mse',metrics=[PSNR])
 
+csv_logger = CSVLogger('.\\train_results\\training_' + filename + '.log', separator=',', append=False)
 model.summary()
 
 history = model.fit(input_train,label_train,
                     batch_size = num_batches,
                     epochs = num_epochs,
+                    callbacks=[csv_logger],
                     validation_split = 0.2)
 
-model.save('.\\train_results\\' + 'TorchData_' + filename)
+model.save('.\\train_results\\' + 'MatLabData_' + filename)
 
 #golden = PIL.Image.open("F:\Images Dataset\IAPRTC\iaprtc12\images\\00\\33.jpg")
 #golden = golden.convert('YCbCr')
